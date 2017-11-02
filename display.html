@@ -1,0 +1,249 @@
+<html>
+	<head>
+		<title>My first three.js app</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+			button
+		</style>
+	</head>
+	<body>
+		<div id="info">Click object to move object, Click light to move light, click default to disable both moves</div>
+		<script src="js/three.js"></script>
+		<script src="js/ObjectLoader.js"></script>
+		<script src="js/OrbitControls.js"></script>
+		<script src="js/stats.js"></script>
+		<div>
+			<button onclick="function1()">face</button>
+			<button onclick="function2()">body</button>
+			<button onclick="function3()">normal map</button>
+			<button onclick="function4()">color texture</button>
+			<button onclick="function5()">light</button>
+		</div>
+
+		<script>
+			//show fps panel
+			var stats = new Stats();
+			stats.showPanel(0);
+			stats.domElement.style.cssText = 'position:absolute;top:0px;right:0px;';
+			document.body.appendChild(stats.domElement);
+
+			var WIDTH = window.innerWidth;
+			var HEIGHT = window.innerHeight;
+
+			var scene = new THREE.Scene();
+			scene.background = new THREE.Color( 0x000000 );
+			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+
+			var texture = new THREE.TextureLoader().load( "textures/merge3dEdit.jpg" );
+			var normalTexture = new THREE.TextureLoader().load( "textures/merge3d_NRM.png" );
+			var bodymaterial = new THREE.TextureLoader().load( "src/body.obj.mtl" );
+
+			var material = new THREE.MeshPhongMaterial({
+				color: '0xdddddd',
+				specular: 0x222222,
+				shininess: 5,
+				side: THREE.DoubleSide,
+				map: texture,
+				normalMap: normalTexture
+			})
+
+			var material2 = new THREE.MeshPhongMaterial({
+				color: '0xdddddd',
+				specular: 0x222222,
+				shininess: 5,
+				side: THREE.DoubleSide,
+				map: texture
+			})
+
+			var material3 = new THREE.MeshPhongMaterial({
+				color: '0xdddddd',
+				specular: 0x222222,
+				shininess: 5,
+				side: THREE.DoubleSide
+			})
+
+			var bodyMaterial = new THREE.MeshPhongMaterial({
+				color: '0xdddddd',
+				specular: 0x222222,
+				shininess: 5,
+				side: THREE.DoubleSide,
+				map: bodymaterial
+			})
+
+			var light = new THREE.DirectionalLight(0xffeedd);
+			light.position.set(0, 0, 30);
+			scene.add(light);
+
+			var loader = new THREE.OBJLoader();
+			var face;
+			loader.load(
+				// resource URL
+				'src/merge3d.obj',
+				// Function when resource is loaded
+				function ( object ) {
+					object.traverse(function (child) {
+            			if (child instanceof THREE.Mesh) {
+                			child.material = material;
+            			}
+        			});
+        			face = object;
+        			object.position.set(-0.6,7,10)
+        			object.scale.set(0.18,0.18,0.18);
+					scene.add( object );
+				}
+			);
+
+			var body;
+			loader.load(
+				// resource URL
+				'src/body.obj',
+				// Function when resource is loaded
+				function ( object ) {
+					object.traverse(function (child) {
+            			if (child instanceof THREE.Mesh) {
+                			//child.material = material;
+            			}
+        			});
+        			body = object;
+        			object.position.set(0,5,25.4);
+        			object.scale.set(0.015,0.015,0.015);
+					scene.add( object );
+				}
+			);
+
+			//add stars
+			function pointsGenerator(num) {
+  				var geometry = new THREE.Geometry();
+  				for (var i = 0;i < num; i++) {
+  						var pX = THREE.Math.randFloatSpread( 300 );
+   						var pY = THREE.Math.randFloatSpread( 300 );
+    					var pZ = THREE.Math.randFloatSpread( 300 );
+    					var vector = new THREE.Vector3(pX, pY, pZ);
+    					geometry.vertices.push(vector);
+  				}
+  				return geometry;
+			}
+			var points = pointsGenerator(2000);
+			var pointMaterial = new THREE.PointsMaterial({
+				color: 0xffffff,
+				specular: 0x222222,
+				shininess: 5,
+				blending: THREE.AdditiveBlending,
+				transparent: false,
+				depthTest: false,
+				size: 0.3
+			});
+			var fireflies = new THREE.Points(points, pointMaterial);
+			scene.add(fireflies);
+			//stars added
+
+			controlsCamera = new THREE.OrbitControls( camera );            
+            controlsLight = new THREE.OrbitControls( light );
+            controlsLight.enabled = true;
+            controlsCamera.enabled = true;
+
+            var normalClick = 1;
+            var colorClick = 1;
+
+			function function1 (){
+				
+				controlsCamera.enabled = true;
+				face.position.set(0,0,0)
+        		face.scale.set(0.8,0.8,0.8);
+        		
+        		body.position.set(2.8,-10,71);
+        		body.scale.set(0.07,0.07,0.07);
+        		//scene.add(face);                          
+                function render() {
+                    renderer.render( scene, camera );
+                }
+                controlsCamera.update();  
+			}
+
+			function function2 (){
+				controlsCamera.enabled = true;
+                face.position.set(-0.6,7,10)
+        		face.scale.set(0.18,0.18,0.18);
+
+        		body.position.set(0,5,25.4);
+        		body.scale.set(0.015,0.015,0.015);
+                function render() {
+                    renderer.render( scene, camera );
+                }
+                ontrolsCamera.update(); 
+            }
+
+            function function3 (){
+            	if (normalClick % 2 == 1) {
+            		face.traverse(function (child) {
+            			if (child instanceof THREE.Mesh) {
+                			child.material = material2;
+            			}
+        			});
+            	} else {
+            		face.traverse(function (child) {
+            			if (child instanceof THREE.Mesh) {
+                			child.material = material;
+            			}
+        			});
+            	}
+                normalClick = normalClick + 1;
+                function render() {
+                    renderer.render( scene, camera );
+                }
+                controlsLight.update(); 
+            }
+
+            function function4 (){
+                if (colorClick % 2 == 1) {
+            		face.traverse(function (child) {
+            			if (child instanceof THREE.Mesh) {
+                			child.material = material3;
+            			}
+        			});
+            	} else {
+            		face.traverse(function (child) {
+            			if (child instanceof THREE.Mesh) {
+                			child.material = material;
+            			}
+        			});
+            	}
+                colorClick = colorClick + 1;
+                function render() {
+                    renderer.render( scene, camera );
+                }
+                controlsLight.update(); 
+            }
+
+            function function5 (){
+                controlsLight.enabled = true;
+            	controlsCamera.enabled = false;
+                function render() {
+                    renderer.render( scene, camera );
+                }
+                controlsLight.update(); 
+            }
+			
+			camera.position.z = 40;
+
+			var animate = function () {
+				stats.begin();
+
+				fireflies.rotation.x += 0.001;
+  				fireflies.rotation.y += 0.001;
+  				fireflies.rotation.z += 0.001;
+  				stats.end();
+  				requestAnimationFrame( animate );
+
+				renderer.render(scene, camera);
+			};
+
+			animate();
+		</script>
+	</body>
+</html>
